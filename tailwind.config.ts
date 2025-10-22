@@ -57,6 +57,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        status: {
+          available: "hsl(var(--status-available))",
+          full: "hsl(var(--status-full))",
+          half: "hsl(var(--status-half))",
+        },
+        peach: "hsl(var(--peach))",
+        pink: "hsl(var(--pink))",
+        mint: "hsl(var(--mint))",
+      },
+      boxShadow: {
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
       },
       borderRadius: {
         lg: "var(--radius)",
