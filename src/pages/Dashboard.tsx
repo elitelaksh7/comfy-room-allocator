@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { FloorSection } from "@/components/FloorSection";
 import { NotificationPanel } from "@/components/NotificationPanel";
+import { RoomDetailsModal } from "@/components/RoomDetailsModal"; // Import the new modal component
 import { Button } from "@/components/ui/button";
 import { Building, TrendingUp } from "lucide-react";
 
@@ -36,8 +38,20 @@ const floorsData = [
 
 export default function Dashboard() {
   const [selectedFloor, setSelectedFloor] = useState(1);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const currentFloorData = floorsData.find(f => f.floorNumber === selectedFloor);
+
+  const handleRoomClick = (room) => {
+    setSelectedRoom(room);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedRoom(null);
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -80,6 +94,7 @@ export default function Dashboard() {
               <FloorSection 
                 floorNumber={currentFloorData.floorNumber}
                 rooms={currentFloorData.rooms}
+                onRoomClick={handleRoomClick} // Pass the click handler to the FloorSection
               />
             )}
           </div>
@@ -90,6 +105,13 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Room Details Modal */}
+      <RoomDetailsModal 
+        room={selectedRoom}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

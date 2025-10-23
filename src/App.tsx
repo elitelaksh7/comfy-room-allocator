@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,8 +8,16 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import Students from "./pages/Students";
+import Rooms from "./pages/Rooms";
+import Requests from "./pages/Requests";
+import Vacancy from "./pages/Vacancy";
+import ExportData from "./pages/ExportData";
+import Payments from "./pages/Payments";
+import Settings from "./pages/Settings"; // Import the new Settings page
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
@@ -31,25 +40,27 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/students" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/rooms" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/requests" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/vacancy" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/export" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/payments" element={<AppLayout><ComingSoon /></AppLayout>} />
-          <Route path="/settings" element={<AppLayout><ComingSoon /></AppLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+            <Route path="/students" element={<AppLayout><Students /></AppLayout>} />
+            <Route path="/rooms" element={<AppLayout><Rooms /></AppLayout>} />
+            <Route path="/requests" element={<AppLayout><Requests /></AppLayout>} />
+            <Route path="/vacancy" element={<AppLayout><Vacancy /></AppLayout>} />
+            <Route path="/export" element={<AppLayout><ExportData /></AppLayout>} />
+            <Route path="/payments" element={<AppLayout><Payments /></AppLayout>} />
+            <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} /> {/* Updated route */}
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

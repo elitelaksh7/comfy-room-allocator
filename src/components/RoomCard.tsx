@@ -1,3 +1,4 @@
+
 import { Bed, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -6,9 +7,10 @@ interface RoomCardProps {
   roomNumber: string;
   totalBeds: number;
   occupiedBeds: number;
+  onClick: () => void;
 }
 
-export function RoomCard({ roomNumber, totalBeds, occupiedBeds }: RoomCardProps) {
+export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }: RoomCardProps) {
   const occupancyRate = (occupiedBeds / totalBeds) * 100;
   
   const getStatusConfig = () => {
@@ -36,7 +38,10 @@ export function RoomCard({ roomNumber, totalBeds, occupiedBeds }: RoomCardProps)
   const statusConfig = getStatusConfig();
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-border">
+    <Card 
+      className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-border cursor-pointer"
+      onClick={onClick} // Add the onClick handler
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

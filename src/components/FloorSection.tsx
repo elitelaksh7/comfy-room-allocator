@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RoomCard } from "./RoomCard";
 import { Building2 } from "lucide-react";
@@ -12,9 +13,10 @@ interface Room {
 interface FloorSectionProps {
   floorNumber: number;
   rooms: Room[];
+  onRoomClick: (room: Room) => void;
 }
 
-export function FloorSection({ floorNumber, rooms }: FloorSectionProps) {
+export function FloorSection({ floorNumber, rooms, onRoomClick }: FloorSectionProps) {
   return (
     <Card className="border-border shadow-md">
       <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b border-border">
@@ -28,7 +30,11 @@ export function FloorSection({ floorNumber, rooms }: FloorSectionProps) {
       <CardContent className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rooms.map((room) => (
-            <RoomCard key={room.id} {...room} />
+            <RoomCard 
+              key={room.id} 
+              {...room} 
+              onClick={() => onRoomClick(room)} // Pass the onClick handler
+            />
           ))}
         </div>
       </CardContent>
