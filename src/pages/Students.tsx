@@ -1,25 +1,44 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AddStudentModal } from "@/components/AddStudentModal";
 import { EditStudentModal } from "@/components/EditStudentModal";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
-const initialStudents = [
-  { id: "1", name: "John Doe", studentId: "S001", room: "101" },
-  { id: "2", name: "Jane Smith", studentId: "S002", room: "102" },
-  { id: "3", name: "Peter Jones", studentId: "S003", room: "103" },
-];
+const functions = getFunctions();
+const getStudents = httpsCallable(functions, 'getStudents');
+const addStudent = httpsCallable(functions, 'addStudent');
+const updateStudent = httpsCallable(functions, 'updateStudent');
+const deleteStudent = httpsCallable(functions, 'deleteStudent');
 
 export default function Students() {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const handleAddStudent = (newStudent) => {
-    setStudents([...students, { ...newStudent, id: `${students.length + 1}` }]);
+  const fetchStudents = async () => {
+    try {
+      const result = await getStudents();
+      setStudents(result.data as any[]);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const handleAddStudent = async (newStudent) => {
+    try {
+      await addStudent(newStudent);
+      fetchStudents(); // Refetch students after adding
+    } catch (error) {
+      console.error('Error adding student:', error);
+    }
   };
 
   const handleEdit = (student) => {
@@ -27,9 +46,23 @@ export default function Students() {
     setIsEditModalOpen(true);
   };
 
-  const handleSave = (updatedStudent) => {
-    setStudents(students.map(s => s.id === updatedStudent.id ? updatedStudent : s));
-    setIsEditModalOpen(false);
+  const handleSave = async (updatedStudent) => {
+    try {
+      await updateStudent(updatedStudent);
+      fetchStudents(); // Refetch students after updating
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Error updating student:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteStudent({ id });
+      fetchStudents(); // Refetch students after deleting
+    } catch (error) {
+      console.error('Error deleting student:', error);
+    }
   };
 
   return (
@@ -57,7 +90,7 @@ export default function Students() {
                   <TableCell>{student.room}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(student)}>Edit</Button>
-                    <Button variant="destructive" size="sm">Delete</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(student.id)}>Delete</Button>
                   </TableCell>
                 </TableRow>
               ))}
