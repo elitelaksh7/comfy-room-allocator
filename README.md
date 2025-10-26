@@ -1,56 +1,74 @@
 
-# Backend Setup Instructions
+# Welcome to your Lovable project
 
-It appears your backend functions are not fully implemented. Follow these steps to set them up correctly.
+## Project info
 
-## 1. Initialize Firebase Functions
+**URL**: https://lovable.dev/projects/475f75fd-a7f3-4fe3-b325-75bd169e5689
 
-If you haven't already, you need to initialize Firebase Functions in your project. Open your terminal and run the following command:
+## How can I edit this code?
 
-```bash
-firebase init functions
+There are several ways of editing your application.
+
+**Use Lovable**
+
+Simply visit the [Lovable Project](https://lovable.dev/projects/475f75fd-a7f3-4fe3-b325-75bd169e5689) and start prompting.
+
+Changes made via Lovable will be committed automatically to this repo.
+
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
-This will create a `functions` directory in your project, which will contain all your backend code.
+**Edit a file directly in GitHub**
 
-## 2. Implement Your Backend Functions
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-Inside the `functions` directory, you'll find an `index.js` (or `index.ts`) file. This is where you'll write your backend logic. Here's an example of how you can implement the `assignRoom` and `exportData` functions:
+**Use GitHub Codespaces**
 
-```javascript
-const { onCall } = require("firebase-functions/v2/https");
-const { getFirestore } = require("firebase-admin/firestore");
-const { initializeApp } = require("firebase-admin/app");
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-initializeApp();
+## What technologies are used for this project?
 
-exports.assignRoom = onCall(async (request) => {
-  const { studentId, roomId } = request.data;
+This project is built with:
 
-  // Your logic to assign the room to the student in Firestore
-  const firestore = getFirestore();
-  await firestore.collection("students").doc(studentId).update({
-    roomId: roomId,
-  });
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-  return { success: true };
-});
+## How can I deploy this project?
 
-exports.exportData = onCall(async (request) => {
-  // Your logic to export data
-  // This is a placeholder, you should implement your own logic here
-  return { data: "This is your exported data" };
-});
-```
+Simply open [Lovable](https://lovable.dev/projects/475f75fd-a7f3-4fe3-b325-75bd169e5689) and click on Share -> Publish.
 
-## 3. Deploy Your Functions
+## Can I connect a custom domain to my Lovable project?
 
-Once you've implemented your functions, you need to deploy them to Firebase. Run the following command in your terminal:
+Yes, you can!
 
-```bash
-firebase deploy --only functions
-```
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-This will deploy your backend functions to Firebase, and your frontend application should now be able to interact with them.
-
-If you have any questions or need further assistance, please don't hesitate to ask!
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)

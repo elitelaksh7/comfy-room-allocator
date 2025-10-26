@@ -17,7 +17,6 @@ import Payments from "./pages/Payments";
 import Settings from "./pages/Settings"; // Import the new Settings page
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
-import SeedDatabase from "./pages/SeedDatabase";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const queryClient = new QueryClient();
@@ -56,7 +55,6 @@ const App = () => (
             <Route path="/export" element={<AppLayout><ExportData /></AppLayout>} />
             <Route path="/payments" element={<AppLayout><Payments /></AppLayout>} />
             <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} /> {/* Updated route */}
-            <Route path="/seed-database" element={<AppLayout><SeedDatabase /></AppLayout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

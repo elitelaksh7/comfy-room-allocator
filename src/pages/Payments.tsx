@@ -1,40 +1,20 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 
-// Get a reference to the functions service
-const functions = getFunctions();
-
-// Get a reference to the 'markAsPaid' function
-const markAsPaid = httpsCallable(functions, 'markAsPaid');
+const initialPayments = [
+  { id: '1', studentId: 'S001', name: 'John Doe', status: 'Paid' },
+  { id: '2', studentId: 'S002', name: 'Jane Smith', status: 'Pending' },
+  { id: '3', studentId: 'S003', name: 'Peter Jones', status: 'Paid' },
+];
 
 export default function Payments() {
-  const [payments, setPayments] = useState([]);
+  const [payments, setPayments] = useState(initialPayments);
 
-  useEffect(() => {
-    const firestore = getFirestore();
-    const paymentsCollection = collection(firestore, 'payments');
-
-    const unsubscribe = onSnapshot(paymentsCollection, (snapshot) => {
-      const paymentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPayments(paymentsData);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
-
-  const handlePayment = async (id) => {
-    try {
-      await markAsPaid({ paymentId: id });
-      console.log('Payment status updated for payment ID:', id);
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-    }
+  const handlePayment = (id: string) => {
+    setPayments(payments.map(p => p.id === id ? { ...p, status: 'Paid' } : p));
   };
 
   return (

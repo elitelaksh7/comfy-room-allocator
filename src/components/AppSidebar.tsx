@@ -1,4 +1,4 @@
-import { Home, Users, DoorOpen, FileText, Download, CreditCard, Settings, Bell, Database } from "lucide-react";
+import { Home, Users, DoorOpen, FileText, Download, CreditCard, Settings, Bell } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -21,7 +21,6 @@ const menuItems = [
   { title: "Export Data", url: "/export", icon: Download },
   { title: "Payment Status", url: "/payments", icon: CreditCard },
   { title: "Settings", url: "/settings", icon: Settings },
-  { title: "Seed Database", url: "/seed-database", icon: Database },
 ];
 
 export function AppSidebar() {

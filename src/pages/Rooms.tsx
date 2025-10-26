@@ -2,67 +2,30 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState, useEffect } from "react";
-import { AddRoomModal } from "@/components/AddRoomModal";
+import { useState } from "react";
 import { EditRoomModal } from "@/components/EditRoomModal";
-import { getFunctions, httpsCallable } from 'firebase/functions';
 
-const functions = getFunctions();
-const getRooms = httpsCallable(functions, 'getRooms');
-const addRoom = httpsCallable(functions, 'addRoom');
-const updateRoom = httpsCallable(functions, 'updateRoom');
-const deleteRoom = httpsCallable(functions, 'deleteRoom');
+const initialRooms = [
+    { id: "1-1", roomNumber: "ACR-1", floor: 1, totalBeds: 4, occupiedBeds: 4 },
+    { id: "1-2", roomNumber: "ACR-2", floor: 1, totalBeds: 3, occupiedBeds: 2 },
+    { id: "2-1", roomNumber: "ACR-3", floor: 2, totalBeds: 4, occupiedBeds: 3 },
+    { id: "2-2", roomNumber: "ACR-4", floor: 2, totalBeds: 3, occupiedBeds: 3 },
+    { id: "3-1", roomNumber: "CR-1", floor: 3, totalBeds: 2, occupiedBeds: 1 },
+];
 
 export default function Rooms() {
-  const [rooms, setRooms] = useState([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [rooms, setRooms] = useState(initialRooms);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
-
-  const fetchRooms = async () => {
-    try {
-      const result = await getRooms();
-      setRooms(result.data as any[]);
-    } catch (error) {
-      console.error("Error fetching rooms:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  const handleAddRoom = async (newRoom) => {
-    try {
-      await addRoom(newRoom);
-      fetchRooms(); // Refetch rooms after adding
-    } catch (error) {
-      console.error('Error adding room:', error);
-    }
-  };
 
   const handleEdit = (room) => {
     setSelectedRoom(room);
     setIsEditModalOpen(true);
   };
 
-  const handleSave = async (updatedRoom) => {
-    try {
-      await updateRoom(updatedRoom);
-      fetchRooms(); // Refetch rooms after updating
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error updating room:', error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteRoom({ id });
-      fetchRooms(); // Refetch rooms after deleting
-    } catch (error) {
-      console.error('Error deleting room:', error);
-    }
+  const handleSave = (updatedRoom) => {
+    setRooms(rooms.map(r => r.id === updatedRoom.id ? updatedRoom : r));
+    setIsEditModalOpen(false);
   };
 
   return (
@@ -70,7 +33,7 @@ export default function Rooms() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Rooms</CardTitle>
-          <Button onClick={() => setIsAddModalOpen(true)}>Add Room</Button>
+          <Button>Add Room</Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -92,7 +55,7 @@ export default function Rooms() {
                   <TableCell>{room.occupiedBeds}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(room)}>Edit</Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(room.id)}>Delete</Button>
+                    <Button variant="destructive" size="sm">Delete</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -101,11 +64,6 @@ export default function Rooms() {
         </CardContent>
       </Card>
 
-      <AddRoomModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddRoom}
-      />
       <EditRoomModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
