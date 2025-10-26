@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
+
 const floorsData = [
   {
     floorNumber: 1,
