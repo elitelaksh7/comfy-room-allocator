@@ -5,13 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface AddStudentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (student: { name: string; studentId: string; room: string }) => void;
-}
-
-export function AddStudentModal({ isOpen, onClose, onAdd }: AddStudentModalProps) {
+export function AddStudentModal({ isOpen, onClose, onAdd }) {
   const [name, setName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [room, setRoom] = useState("");

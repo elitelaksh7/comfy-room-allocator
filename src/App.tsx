@@ -21,7 +21,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => (
+const AppLayout = ({ children }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <AppSidebar />

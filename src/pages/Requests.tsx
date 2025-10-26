@@ -17,11 +17,11 @@ export default function Requests() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const handleApprove = (id: string) => {
+  const handleApprove = (id) => {
     setRequests(requests.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = (id) => {
     setRequests(requests.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
   };
 
@@ -30,7 +30,7 @@ export default function Requests() {
     setIsModalOpen(true);
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status) => {
     switch (status) {
       case "Pending":
         return "secondary";

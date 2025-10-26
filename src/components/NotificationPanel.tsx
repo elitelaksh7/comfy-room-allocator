@@ -1,14 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, AlertCircle, CheckCircle, Info } from "lucide-react";
 
-interface Notification {
-  id: string;
-  type: "info" | "success" | "warning" | "error";
-  message: string;
-  time: string;
-}
-
-const notifications: Notification[] = [
+const notifications = [
   {
     id: "1",
     type: "success",
@@ -41,7 +34,7 @@ const notifications: Notification[] = [
   }
 ];
 
-const getIcon = (type: Notification["type"]) => {
+const getIcon = (type) => {
   switch (type) {
     case "success":
       return <CheckCircle className="h-5 w-5 text-status-available" />;
@@ -54,7 +47,7 @@ const getIcon = (type: Notification["type"]) => {
   }
 };
 
-const getBgColor = (type: Notification["type"]) => {
+const getBgColor = (type) => {
   switch (type) {
     case "success":
       return "bg-status-available/10";

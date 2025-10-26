@@ -3,20 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RoomCard } from "./RoomCard";
 import { Building2 } from "lucide-react";
 
-interface Room {
-  id: string;
-  roomNumber: string;
-  totalBeds: number;
-  occupiedBeds: number;
-}
-
-interface FloorSectionProps {
-  floorNumber: number;
-  rooms: Room[];
-  onRoomClick: (room: Room) => void;
-}
-
-export function FloorSection({ floorNumber, rooms, onRoomClick }: FloorSectionProps) {
+export function FloorSection({ floorNumber, rooms, onRoomClick }) {
   return (
     <Card className="border-border shadow-md">
       <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b border-border">

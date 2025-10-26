@@ -12,7 +12,7 @@ import { signUp, signIn } from "@/lib/auth";
 export default function Auth() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
@@ -22,21 +22,21 @@ export default function Auth() {
   const [signUpHostelId, setSignUpHostelId] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
       await signIn(signInEmail, signInPassword);
       navigate("/");
-    } catch (error: any) {
+    } catch (error) {
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -44,7 +44,7 @@ export default function Auth() {
       await signUp(signUpEmail, signUpPassword);
       // You might want to store additional user info (name, hostel ID) in Firestore here
       navigate("/");
-    } catch (error: any) {
+    } catch (error) {
       setError(error.message);
     } finally {
       setIsLoading(false);

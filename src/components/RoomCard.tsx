@@ -3,14 +3,7 @@ import { Bed, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-interface RoomCardProps {
-  roomNumber: string;
-  totalBeds: number;
-  occupiedBeds: number;
-  onClick: () => void;
-}
-
-export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }: RoomCardProps) {
+export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }) {
   const occupancyRate = (occupiedBeds / totalBeds) * 100;
   
   const getStatusConfig = () => {

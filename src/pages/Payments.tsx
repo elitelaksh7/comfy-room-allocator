@@ -13,7 +13,7 @@ const initialPayments = [
 export default function Payments() {
   const [payments, setPayments] = useState(initialPayments);
 
-  const handlePayment = (id: string) => {
+  const handlePayment = (id) => {
     setPayments(payments.map(p => p.id === id ? { ...p, status: 'Paid' } : p));
   };
 
