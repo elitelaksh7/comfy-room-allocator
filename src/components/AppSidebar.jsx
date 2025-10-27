@@ -30,10 +30,10 @@ export function AppSidebar() {
     <Sidebar className="border-r border-sidebar-border">
       <SidebarContent>
         <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            HRAS
+          <h1 className="text-2xl font-bold">
+            Comfy Room Allocator
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">Hostel Room System</p>
+          <p className="text-xs text-muted-foreground mt-1">A room allocation system</p>
         </div>
         
         <SidebarGroup>
