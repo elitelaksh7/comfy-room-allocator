@@ -5,7 +5,7 @@ export function NotificationPanel({ floorsData = [] }) {
   const notifications = floorsData.map(floor => {
     const fullRooms = floor.rooms.filter(room => room.occupiedBeds === room.totalBeds);
     return {
-      floor: floor.floor,
+      floor: floor.floorNumber,
       fullRooms: fullRooms.map(room => room.roomNumber),
     };
   }).filter(floor => floor.fullRooms.length > 0);

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,16 +12,26 @@ export function AddStudentModal({ isOpen, onClose, onAdd }) {
 
   const handleSubmit = () => {
     onAdd({ name, studentId, room });
-    setName("");
-    setStudentId("");
-    setRoom("");
+    onClose(); // Close the modal after adding
   };
+
+  // Reset form when the modal is closed and then opened again
+  useState(() => {
+    if (isOpen) {
+      setName("");
+      setStudentId("");
+      setRoom("");
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>
+          <DialogDescription>
+            Fill in the details below to add a new student.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -56,6 +66,7 @@ export function AddStudentModal({ isOpen, onClose, onAdd }) {
           </div>
         </div>
         <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button type="submit" onClick={handleSubmit}>Add Student</Button>
         </DialogFooter>
       </DialogContent>

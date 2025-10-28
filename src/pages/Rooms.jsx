@@ -4,29 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EditRoomModal } from '@/components/EditRoomModal';
-import { AddRoomModal } from '@/components/AddRoomModal'; // Import AddRoomModal
+import { AddRoomModal } from '@/components/AddRoomModal';
+import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { Loader2 } from 'lucide-react';
 
 export default function Rooms() {
   const [rooms, setRooms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // State for AddRoomModal
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
+  const fetchRooms = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/rooms');
+      const data = await response.json();
+      setRooms(data);
+    } catch (error) {
+      console.error('Failed to fetch rooms:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRooms = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/rooms');
-        const data = await response.json();
-        setRooms(data);
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchRooms();
   }, []);
 
@@ -52,29 +55,37 @@ export default function Rooms() {
 
   const handleSave = async (updatedRoom) => {
     try {
-      const response = await fetch('/api/rooms', {
+      const response = await fetch(`/api/rooms/${updatedRoom._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: updatedRoom._id, ...updatedRoom }),
+        body: JSON.stringify(updatedRoom),
       });
       const newRoom = await response.json();
       setRooms(rooms.map((r) => (r._id === newRoom._id ? newRoom : r)));
-      setIsEditModalOpen(false);
     } catch (error) {
       console.error('Failed to save room:', error);
+    } finally {
+      setIsEditModalOpen(false);
     }
   };
 
-  const handleDelete = async (roomId) => {
+  const openDeleteModal = (room) => {
+    setSelectedRoom(room);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedRoom) return;
     try {
-      await fetch('/api/rooms', {
+      await fetch(`/api/rooms/${selectedRoom._id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: roomId }),
       });
-      setRooms(rooms.filter((r) => r._id !== roomId));
+      setRooms(rooms.filter((r) => r._id !== selectedRoom._id));
     } catch (error) {
       console.error('Failed to delete room:', error);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setSelectedRoom(null);
     }
   };
 
@@ -112,7 +123,7 @@ export default function Rooms() {
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(room)}>
                         Edit
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(room._id)}>
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteModal(room)}>
                         Delete
                       </Button>
                     </TableCell>
@@ -132,6 +143,16 @@ export default function Rooms() {
           onClose={() => setIsEditModalOpen(false)}
           room={selectedRoom}
           onSave={handleSave}
+        />
+      )}
+
+      {selectedRoom && (
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Room"
+          description={`Are you sure you want to delete room ${selectedRoom.roomNumber}? This will also unassign any students in this room.`}
         />
       )}
     </>
