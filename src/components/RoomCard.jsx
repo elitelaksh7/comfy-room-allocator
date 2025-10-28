@@ -1,29 +1,25 @@
 
 import { Bed, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }) {
   const occupancyRate = (occupiedBeds / totalBeds) * 100;
-  
+
   const getStatusConfig = () => {
     if (occupiedBeds === totalBeds) {
       return {
         color: "bg-status-full/10 text-status-full",
-        indicatorColor: "bg-status-full",
         text: "Full"
       };
     }
     if (occupiedBeds > 0) {
       return {
         color: "bg-status-half/10 text-status-half",
-        indicatorColor: "bg-status-half",
         text: "Half-filled"
       };
     }
     return {
       color: "bg-status-available/10 text-status-available",
-      indicatorColor: "bg-status-available",
       text: "Available"
     };
   };
@@ -33,7 +29,7 @@ export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }) {
   return (
     <Card 
       className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-border cursor-pointer"
-      onClick={onClick} // Add the onClick handler
+      onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
@@ -49,11 +45,10 @@ export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }) {
         </div>
         
         <div className="space-y-2">
-          <Progress 
-            value={occupancyRate} 
-            className="h-2"
-            indicatorClassName={statusConfig.indicatorColor}
-          />
+          <div className="flex h-2 w-full overflow-hidden rounded-full">
+            <div style={{ width: `${occupancyRate}%` }} className="bg-status-full"></div>
+            <div style={{ width: `${100 - occupancyRate}%` }} className="bg-status-available"></div>
+          </div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Users className="h-3 w-3" />

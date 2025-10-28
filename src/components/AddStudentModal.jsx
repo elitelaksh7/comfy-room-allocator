@@ -15,52 +15,48 @@ export function AddStudentModal({ isOpen, onClose, onAdd }) {
     setName("");
     setStudentId("");
     setRoom("");
-    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
+            <Label htmlFor="name" className="text-right">Name</Label>
             <Input 
               id="name" 
               className="col-span-3" 
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Jane Doe"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="studentId" className="text-right">
-              Student ID
-            </Label>
+            <Label htmlFor="studentId" className="text-right">Student ID</Label>
             <Input 
               id="studentId" 
               className="col-span-3" 
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
+              placeholder="e.g., 123456"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="room" className="text-right">
-              Room
-            </Label>
+            <Label htmlFor="room" className="text-right">Room</Label>
             <Input 
               id="room" 
               className="col-span-3" 
               value={room}
               onChange={(e) => setRoom(e.target.value)}
+              placeholder="e.g., ACR-101"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>Save</Button>
+          <Button type="submit" onClick={handleSubmit}>Add Student</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

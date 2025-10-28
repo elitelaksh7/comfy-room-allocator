@@ -35,8 +35,8 @@ All colors MUST be HSL.
     --accent-foreground: 0 0% 100%;
 
     /* Status Colors */
-    --status-available: 150 65% 68%;
-    --status-full: 0 85% 70%;
+    --status-available: 90 70% 55%; /* Vibrant Green */
+    --status-full: 0 75% 65%; /* Softer Red */
     --status-half: 45 100% 70%;
 
     /* Additional Accent Colors */
@@ -93,8 +93,9 @@ All colors MUST be HSL.
     --accent: 205 85% 68%;
     --accent-foreground: 0 0% 100%;
 
-    --status-available: 150 65% 68%;
-    --status-full: 0 85% 70%;
+    /* Status Colors */
+    --status-available: 90 70% 55%; /* Vibrant Green */
+    --status-full: 0 75% 65%; /* Softer Red */
     --status-half: 45 100% 70%;
 
     --peach: 25 100% 70%;

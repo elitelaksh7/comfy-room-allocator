@@ -3,26 +3,46 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ViewRequestModal } from "@/components/ViewRequestModal";
-
-const initialRequests = [
-  { id: "1", studentName: "Alice Johnson", requestType: "Room Change", date: "2024-07-28", status: "Pending" },
-  { id: "2", studentName: "Bob Williams", requestType: "Late Entry", date: "2024-07-27", status: "Approved" },
-  { id: "3", studentName: "Charlie Brown", requestType: "Guest Stay", date: "2024-07-26", status: "Rejected" },
-];
+import { Loader2 } from "lucide-react";
 
 export default function Requests() {
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const handleApprove = (id) => {
-    setRequests(requests.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
-  };
+  useEffect(() => {
+    const fetchRequests = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/requests");
+        const data = await response.json();
+        setRequests(data);
+      } catch (error) {
+        console.error("Failed to fetch requests:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRequests();
+  }, []);
 
-  const handleReject = (id) => {
-    setRequests(requests.map(r => r.id === id ? { ...r, status: 'Rejected' } : r));
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      const response = await fetch("/api/requests", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      const updatedRequest = await response.json();
+      setRequests(
+        requests.map((r) => (r._id === updatedRequest._id ? updatedRequest : r))
+      );
+    } catch (error) {
+      console.error("Failed to update request status:", error);
+    }
   };
 
   const handleView = (request) => {
@@ -50,41 +70,79 @@ export default function Requests() {
           <CardTitle>Requests and Changes</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student Name</TableHead>
-                <TableHead>Request Type</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>{request.studentName}</TableCell>
-                  <TableCell>{request.requestType}</TableCell>
-                  <TableCell>{request.date}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {request.status === 'Pending' && (
-                      <>
-                        <Button variant="outline" size="sm" onClick={() => handleApprove(request.id)}>Approve</Button>
-                        <Button variant="outline" size="sm" className="ml-2" onClick={() => handleReject(request.id)}>Reject</Button>
-                      </>
-                    )}
-                    <Button variant="outline" size="sm" className="ml-2" onClick={() => handleView(request)}>View</Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student Name</TableHead>
+                  <TableHead>Request Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {requests.map((request) => (
+                  <TableRow
+                    key={request._id}
+                    className={request.status === "Rejected" ? "bg-red-100 dark:bg-red-900/50" : ""}
+                  >
+                    <TableCell>{request.studentName}</TableCell>
+                    <TableCell>{request.requestType}</TableCell>
+                    <TableCell>{new Date(request.date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={getStatusVariant(request.status)}
+                        className={request.status === "Rejected" ? "bg-red-500 text-white" : ""}
+                      >
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {request.status === "Pending" && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(request._id, "Approved")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            onClick={() => handleUpdateStatus(request._id, "Rejected")}
+                          >
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => handleView(request)}
+                      >
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
-      <ViewRequestModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} request={selectedRequest} />
+      <ViewRequestModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        request={selectedRequest}
+      />
     </>
   );
 }

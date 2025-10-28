@@ -9,11 +9,15 @@ const port = 5000;
 const mongoURI = "mongodb+srv://vedaanth09:vedaanth@cluster0.pdurjjo.mongodb.net/?appName=Cluster0";
 const dbName = "hostel";
 
-// --- CORS Configuration ---
-// In complex environments like Cloud Workstations, a flexible CORS policy is often needed.
-// This tells the server to allow requests from any origin that sends them.
-// The `credentials: true` header is also important for proxied authentication.
-app.use(cors({ origin: true, credentials: true }));
+// --- Corrected CORS Configuration ---
+// This configuration dynamically allows the specific origin of the frontend request,
+// which is necessary for the cloud IDE's security and authentication model.
+// It explicitly sets credentials to true, which is required for cross-origin requests
+// that include cookies or authorization headers.
+app.use(cors({
+    origin: true, 
+    credentials: true
+}));
 
 app.use(express.json());
 
@@ -65,10 +69,10 @@ MongoClient.connect(mongoURI)
 // --- API Endpoints ---
 app.get('/api/dashboard', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
-  
+
   try {
     const rooms = await db.collection('rooms').find().sort({ floor: 1, roomNumber: 1 }).toArray();
-    
+
     const floorsMap = {};
     for (const room of rooms) {
       const floorNum = room.floor;
@@ -78,7 +82,7 @@ app.get('/api/dashboard', async (req, res) => {
           rooms: []
         };
       }
-      
+
       const processedRoom = {
         ...room,
         id: room._id.toString(),

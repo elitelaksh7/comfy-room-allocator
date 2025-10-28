@@ -7,8 +7,11 @@ import { AddStudentModal } from "@/components/AddStudentModal";
 import { EditStudentModal } from "@/components/EditStudentModal";
 import { Loader2, AlertCircle } from "lucide-react";
 
-// The base URL for our API, handled by the Vite proxy
-const API_BASE_URL = "/api";
+const getBackendUrl = () => {
+    const { protocol, hostname } = window.location;
+    const backendPort = 5000;
+    return `${protocol}//${hostname.replace(/\d+?-/, `${backendPort}-`)}`;
+}
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -18,18 +21,18 @@ export default function Students() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Fetch all students from the API when the component mounts
   useEffect(() => {
     const fetchStudents = async () => {
       setIsLoading(true);
       setError(null);
+      const backendUrl = getBackendUrl();
       try {
-        const response = await fetch(`${API_BASE_URL}/students`);
+        const response = await fetch(`${backendUrl}/api/students`);
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setStudents(data);
+        setStudents(data.filter(student => student));
       } catch (err) {
         console.error("Failed to fetch students:", err);
         setError("Failed to load student data. Please try again later.");
@@ -41,52 +44,26 @@ export default function Students() {
   }, []);
 
   const handleAddStudent = async (newStudent) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/students`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStudent),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const addedStudent = await response.json();
-      setStudents([...students, addedStudent]); // Add the student returned from the API
-      setIsAddModalOpen(false); // Close modal on success
-    } catch (err) {
-      console.error("Failed to add student:", err);
-      // Here you could add state to show an error message in the modal
-    }
+    // TODO: Implement this after creating the backend endpoint
+    console.log("Add student functionality not implemented yet.");
+    setIsAddModalOpen(false);
   };
   
   const handleDeleteStudent = async (studentId) => {
-    // Optimistic UI: remove student from list immediately
-    const originalStudents = [...students];
-    setStudents(students.filter(s => s.id !== studentId));
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/students/${studentId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-    } catch (err) {
-      console.error("Failed to delete student:", err);
-      // If the API call fails, revert the change
-      setStudents(originalStudents);
-      setError("Failed to delete student. Please try again.");
-    }
+    // TODO: Implement this after creating the backend endpoint
+    console.log("Delete student functionality not implemented yet.");
   };
-
 
   const handleEdit = (student) => {
+    // TODO: Implement this after creating the backend endpoint
     setSelectedStudent(student);
     setIsEditModalOpen(true);
+    console.log("Edit student functionality not implemented yet.");
   };
 
-  const handleSave = (updatedStudent) => {
-    setStudents(students.map(s => s.id === updatedStudent.id ? updatedStudent : s));
+  const handleSave = async (updatedStudent) => {
+    // TODO: Implement this after creating the backend endpoint
+    console.log("Save student functionality not implemented yet.");
     setIsEditModalOpen(false);
   };
 
@@ -95,7 +72,7 @@ export default function Students() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Manage Students</CardTitle>
-          <Button onClick={() => setIsAddModalOpen(true)}>Add Student</Button>
+          <Button onClick={() => alert("Add student functionality will be implemented soon.")}>Add Student</Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -103,9 +80,10 @@ export default function Students() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : error ? (
-            <div className="text-center py-10">
-              <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
-              <p className="mt-2 text-destructive">{error}</p>
+            <div className="text-center py-10 text-destructive">
+              <AlertCircle className="mx-auto h-8 w-8" />
+              <p className="mt-2">{error}</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => setError(null)}>Dismiss</Button>
             </div>
           ) : (
             <Table>
@@ -119,13 +97,13 @@ export default function Students() {
               </TableHeader>
               <TableBody>
                 {students.map((student) => (
-                  <TableRow key={student.id}>
+                  <TableRow key={student._id}>
                     <TableCell>{student.name}</TableCell>
                     <TableCell>{student.studentId}</TableCell>
-                    <TableCell>{student.room}</TableCell>
+                    <TableCell>{student.roomNumber || 'N/A'}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(student)}>Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteStudent(student.id)}>Delete</Button>
+                      <Button variant="outline" size="sm" className="mr-2" onClick={() => alert("Edit student functionality will be implemented soon.")}>Edit</Button>
+                      <Button variant="destructive" size="sm" onClick={() => alert("Delete student functionality will be implemented soon.")}>Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -140,6 +118,7 @@ export default function Students() {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddStudent}
       />
+
       <EditStudentModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

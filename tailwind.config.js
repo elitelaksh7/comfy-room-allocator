@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -57,11 +56,8 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        status: {
-          available: "hsl(var(--status-available))",
-          full: "hsl(var(--status-full))",
-          half: "hsl(var(--status-half))",
-        },
+        'status-available': 'hsl(90 70% 55%)',
+        'status-full': 'hsl(0 75% 65%)',
         peach: "hsl(var(--peach))",
         pink: "hsl(var(--pink))",
         mint: "hsl(var(--mint))",

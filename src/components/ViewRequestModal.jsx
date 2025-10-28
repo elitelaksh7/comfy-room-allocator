@@ -1,8 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
-export function ViewRequestModal({ request, isOpen, onClose }) {
+export function ViewRequestModal({ isOpen, onClose, request }) {
   if (!request) return null;
 
   return (
@@ -11,14 +10,13 @@ export function ViewRequestModal({ request, isOpen, onClose }) {
         <DialogHeader>
           <DialogTitle>Request Details</DialogTitle>
         </DialogHeader>
-        <div>
-          <p><strong>Student Name:</strong> {request.studentName}</p>
-          <p><strong>Request Type:</strong> {request.requestType}</p>
-          <p><strong>Date:</strong> {request.date}</p>
-          <p><strong>Status:</strong> {request.status}</p>
-        </div>
-        <div className="text-right mt-4">
-            <Button variant="outline" onClick={onClose}>Close</Button>
+        <div className="grid gap-4 py-4">
+          <div><strong>Student:</strong> {request.studentName}</div>
+          <div><strong>Request Type:</strong> {request.requestType}</div>
+          <div><strong>Date:</strong> {new Date(request.date).toLocaleDateString()}</div>
+          <div><strong>Status:</strong> {request.status}</div>
+          <div><strong>Details:</strong></div>
+          <p>{request.details}</p>
         </div>
       </DialogContent>
     </Dialog>

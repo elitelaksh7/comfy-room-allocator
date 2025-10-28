@@ -12,22 +12,26 @@ export function EditStudentModal({ isOpen, onClose, student, onSave }) {
 
   useEffect(() => {
     if (student) {
-      setName(student.name);
-      setStudentId(student.studentId);
-      setRoom(student.room);
+      setName(student.name || "");
+      setStudentId(student.studentId || "");
+      setRoom(student.room || "");
     }
   }, [student]);
 
   const handleSave = () => {
-    onSave({ ...student, name, studentId, room });
+    const updatedStudent = { 
+        ...student, 
+        name, 
+        studentId, 
+        room 
+    };
+    onSave(updatedStudent);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Student</DialogTitle>
         </DialogHeader>
