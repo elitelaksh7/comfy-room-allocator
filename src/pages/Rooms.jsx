@@ -33,6 +33,12 @@ export default function Rooms() {
     fetchRooms();
   }, []);
 
+  const handleCloseModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsDeleteModalOpen(false);
+  };
+
   const handleAdd = async (newRoom) => {
     try {
       const response = await fetch('/api/rooms', {
@@ -42,7 +48,7 @@ export default function Rooms() {
       });
       const addedRoom = await response.json();
       setRooms([...rooms, addedRoom]);
-      setIsAddModalOpen(false);
+      handleCloseModals();
     } catch (error) {
       console.error('Failed to add room:', error);
     }
@@ -62,30 +68,26 @@ export default function Rooms() {
       });
       const newRoom = await response.json();
       setRooms(rooms.map((r) => (r._id === newRoom._id ? newRoom : r)));
+      handleCloseModals();
     } catch (error) {
       console.error('Failed to save room:', error);
-    } finally {
-      setIsEditModalOpen(false);
     }
   };
 
-  const openDeleteModal = (room) => {
+  const handleDelete = (room) => {
     setSelectedRoom(room);
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedRoom) return;
     try {
       await fetch(`/api/rooms/${selectedRoom._id}`, {
         method: 'DELETE',
       });
       setRooms(rooms.filter((r) => r._id !== selectedRoom._id));
+      handleCloseModals();
     } catch (error) {
       console.error('Failed to delete room:', error);
-    } finally {
-      setIsDeleteModalOpen(false);
-      setSelectedRoom(null);
     }
   };
 
@@ -123,7 +125,7 @@ export default function Rooms() {
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(room)}>
                         Edit
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteModal(room)}>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(room)}>
                         Delete
                       </Button>
                     </TableCell>
@@ -135,12 +137,18 @@ export default function Rooms() {
         </CardContent>
       </Card>
 
-      <AddRoomModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAdd} />
+      {isAddModalOpen && (
+        <AddRoomModal 
+          isOpen={isAddModalOpen} 
+          onClose={handleCloseModals} 
+          onAdd={handleAdd} 
+        />
+      )}
 
       {selectedRoom && (
         <EditRoomModal
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+          onClose={handleCloseModals}
           room={selectedRoom}
           onSave={handleSave}
         />
@@ -149,7 +157,7 @@ export default function Rooms() {
       {selectedRoom && (
         <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onClose={handleCloseModals}
           onConfirm={handleConfirmDelete}
           title="Delete Room"
           description={`Are you sure you want to delete room ${selectedRoom.roomNumber}? This will also unassign any students in this room.`}

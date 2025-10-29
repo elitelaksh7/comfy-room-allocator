@@ -16,7 +16,6 @@ export function DeleteConfirmationModal({
   title,
   description,
 }) {
-  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

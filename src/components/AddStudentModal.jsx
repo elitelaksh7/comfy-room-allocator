@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,8 @@ export function AddStudentModal({ isOpen, onClose, onAdd }) {
     onClose(); // Close the modal after adding
   };
 
-  // Reset form when the modal is closed and then opened again
-  useState(() => {
+  // Reset form when the modal is opened
+  useEffect(() => {
     if (isOpen) {
       setName("");
       setStudentId("");

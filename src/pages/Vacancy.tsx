@@ -14,16 +14,18 @@ declare module "jspdf" {
 }
 
 export default function Vacancy() {
-  const [floorsData, setFloorsData] = useState([]);
+  // --- RENAMED: State now holds a simple array of rooms ---
+  const [rooms, setRooms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/dashboard");
+        // --- FIXED: Fetch from the correct endpoint --- 
+        const response = await fetch("/api/rooms");
         const data = await response.json();
-        setFloorsData(data);
+        setRooms(data);
       } catch (error) {
         console.error("Error fetching vacancy data:", error);
       } finally {
@@ -34,9 +36,8 @@ export default function Vacancy() {
     fetchData();
   }, []);
 
-  const vacantRooms = floorsData.flatMap(floor => 
-    floor.rooms.filter(room => room.occupiedBeds < room.totalBeds)
-  );
+  // --- SIMPLIFIED: Filter the flat array of rooms directly ---
+  const vacantRooms = rooms.filter(room => room.occupiedBeds < room.totalBeds);
 
   const downloadPdf = () => {
     const doc = new jsPDF();
@@ -56,7 +57,7 @@ export default function Vacancy() {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Vacancy Report</CardTitle>
         <Button onClick={downloadPdf} disabled={isLoading || vacantRooms.length === 0}>
-          Download in PDF
+          Download as PDF
         </Button>
       </CardHeader>
       <CardContent>

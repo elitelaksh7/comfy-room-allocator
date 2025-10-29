@@ -31,7 +31,6 @@ export function AddRoomModal({ isOpen, onClose, onAdd }) {
       totalBeds: parseInt(totalBeds), 
       occupiedBeds: 0 
     });
-    onClose(); // Close modal after submission
   };
 
   return (

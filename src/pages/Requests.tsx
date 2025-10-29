@@ -31,10 +31,13 @@ export default function Requests() {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      const response = await fetch("/api/requests", {
+      // --- THE FINAL FIX ---
+      // The API endpoint for updating is now PUT /api/requests/:id
+      const response = await fetch(`/api/requests/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        // The body only needs to contain the fields being changed.
+        body: JSON.stringify({ status }),
       });
       const updatedRequest = await response.json();
       setRequests(

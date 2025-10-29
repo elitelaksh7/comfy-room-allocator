@@ -13,21 +13,27 @@ export function EditRoomModal({ isOpen, onClose, room, onSave }) {
   useEffect(() => {
     if (room) {
       setRoomNumber(room.roomNumber || "");
-      setFloor(room.floor || "");
-      setTotalBeds(room.totalBeds || "");
+      setFloor(room.floor?.toString() || "");
+      setTotalBeds(room.totalBeds?.toString() || "");
+    } else {
+      setRoomNumber("");
+      setFloor("");
+      setTotalBeds("");
     }
-  }, [room]);
+  }, [room, isOpen]);
 
   const handleSave = () => {
+    if (!roomNumber || !floor || !totalBeds) {
+      alert("Please fill all fields.");
+      return;
+    }
     onSave({ 
         ...room, 
         roomNumber, 
-        floor, 
-        totalBeds 
+        floor: parseInt(floor, 10),
+        totalBeds: parseInt(totalBeds, 10)
     });
   };
-  
-  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -41,15 +47,15 @@ export function EditRoomModal({ isOpen, onClose, room, onSave }) {
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="roomNumber" className="text-right">Room Number</Label>
-            <Input id="roomNumber" placeholder={room?.roomNumber || "Enter room number"} value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} className="col-span-3" />
+            <Input id="roomNumber" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="floor" className="text-right">Floor</Label>
-            <Input id="floor" placeholder={room?.floor || "Enter floor"} value={floor} onChange={(e) => setFloor(e.target.value)} className="col-span-3" />
+            <Input id="floor" type="number" value={floor} onChange={(e) => setFloor(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalBeds" className="text-right">Total Beds</Label>
-            <Input id="totalBeds" placeholder={room?.totalBeds || "Enter total beds"} value={totalBeds} onChange={(e) => setTotalBeds(e.target.value)} className="col-span-3" />
+            <Input id="totalBeds" type="number" value={totalBeds} onChange={(e) => setTotalBeds(e.target.value)} className="col-span-3" />
           </div>
         </div>
         <DialogFooter>

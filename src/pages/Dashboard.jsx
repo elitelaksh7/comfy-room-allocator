@@ -1,87 +1,134 @@
 
-import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { EditRoomModal } from "@/components/EditRoomModal";
-import { FloorSection } from "@/components/FloorSection";
+import { useState, useEffect } from 'react';
+import { FloorSection } from '@/components/FloorSection';
+import { EditRoomModal } from '@/components/EditRoomModal';
+import { NotificationPanel } from '@/components/NotificationPanel';
+import { RoomDetailsModal } from '@/components/RoomDetailsModal';
+import { Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
-  const [floorsData, setFloorsData] = useState([]);
+  const [floors, setFloors] = useState({});
+  // --- NEW: State for dashboard statistics ---
+  const [dashboardStats, setDashboardStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [editingRoom, setEditingRoom] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
 
-  const fetchDashboardData = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch("/api/dashboard");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setFloorsData(data);
-    } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-      setError("Failed to load dashboard data. Please try again later.");
+      // --- UPDATED: Fetch from both endpoints at the same time ---
+      const [roomsResponse, dashboardResponse] = await Promise.all([
+        fetch(`/api/rooms?timestamp=${new Date().getTime()}`),
+        fetch(`/api/dashboard?timestamp=${new Date().getTime()}`)
+      ]);
+
+      if (!roomsResponse.ok) throw new Error('Failed to fetch rooms');
+      if (!dashboardResponse.ok) throw new Error('Failed to fetch dashboard stats');
+
+      const rooms = await roomsResponse.json();
+      const stats = await dashboardResponse.json();
+      
+      // --- NEW: Update the statistics state ---
+      setDashboardStats(stats);
+
+      const floorsData = rooms.reduce((acc, room) => {
+        const floorKey = room.floor.toString();
+        if (!acc[floorKey]) acc[floorKey] = [];
+        acc[floorKey].push(room);
+        return acc;
+      }, {});
+      
+      setFloors(floorsData);
+
+    } catch (error) {
+      console.error('Error fetching live data:', error);
     } finally {
-      setIsLoading(false);
+      if (isLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchData();
+    const intervalId = setInterval(fetchData, 3000);
+    return () => clearInterval(intervalId);
   }, []);
 
-  const handleEditRoom = (room) => {
-    setEditingRoom(room);
+  const handleEdit = (room) => {
+    setSelectedRoom(room);
     setIsEditModalOpen(true);
   };
-
-  const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-    setEditingRoom(null);
+  
+  const handleOpenDetails = (room) => {
+    setSelectedRoom(room);
+    setIsDetailsModalOpen(true);
   };
 
-  const handleSaveRoom = async (updatedRoom) => {
+  const handleSave = async (roomToSave) => {
     try {
-      const response = await fetch(`/api/rooms/${updatedRoom.id}`, {
+      const response = await fetch(`/api/rooms/${roomToSave._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedRoom),
+        body: JSON.stringify(roomToSave),
       });
-      if (!response.ok) throw new Error('Failed to save room');
-      await fetchDashboardData();
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to save room');
+      }
+      
+      setIsEditModalOpen(false);
+
     } catch (error) {
-      console.error("Failed to save room:", error);
-    } finally {
-      handleCloseModal();
+      console.error('Save failed:', error);
     }
   };
-
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen bg-background"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
-  }
-
-  if (error) {
-    return <div className="flex items-center justify-center h-screen bg-background text-destructive">{error}</div>;
-  }
+  
+  const allRoomsForPanel = Object.values(floors).flat();
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold mb-4">Hostel Dashboard</h1>
-      {floorsData.map((floor) => (
-        <FloorSection
-          key={floor.floor}
-          floor={floor.floor}
-          rooms={floor.rooms}
-          onEditRoom={handleEditRoom}
-        />
-      ))}
-      {editingRoom && (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+            {Object.entries(floors)
+              .sort(([floorA], [floorB]) => parseInt(floorA, 10) - parseInt(floorB, 10))
+              .map(([floor, rooms]) => (
+                <FloorSection 
+                  key={floor} 
+                  floor={floor} 
+                  rooms={rooms}
+                  onEditRoom={handleEdit}
+                  onOpenDetails={handleOpenDetails} 
+                />
+              ))}
+          </div>
+          <div className="lg:col-span-1">
+            {/* --- UPDATED: Pass the new stats to the panel --- */}
+            <NotificationPanel rooms={allRoomsForPanel} stats={dashboardStats} />
+          </div>
+        </div>
+      )}
+
+      {selectedRoom && (
         <EditRoomModal
           isOpen={isEditModalOpen}
-          onClose={handleCloseModal}
-          room={editingRoom}
-          onSave={handleSaveRoom}
+          onClose={() => setIsEditModalOpen(false)}
+          room={selectedRoom}
+          onSave={handleSave}
+        />
+      )}
+
+      {selectedRoom && (
+        <RoomDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          room={selectedRoom}
         />
       )}
     </div>

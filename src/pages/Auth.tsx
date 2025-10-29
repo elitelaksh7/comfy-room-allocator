@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Home, Mail, Lock, User, Building2 } from "lucide-react";
 import { signUp, signIn } from "@/lib/auth";
@@ -90,10 +90,6 @@ export default function Auth() {
       <div className="flex items-center justify-center p-8 bg-background">
         <Card className="w-full max-w-md border-border shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">HRAS</CardTitle>
-            <CardDescription className="text-center">
-              Sign in to manage your hostel
-            </CardDescription>
           </CardHeader>
           <CardContent>
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}

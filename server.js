@@ -15,63 +15,62 @@ app.use(express.json());
 let db;
 
 MongoClient.connect(mongoURI)
-  .then(async (client) => {
-    console.log("Connected to MongoDB Atlas!");
+  .then(client => {
+    console.log("✅ Successfully connected to MongoDB Atlas!");
     db = client.db(dbName);
   })
-  .catch(error => console.error("Could not connect to MongoDB:", error));
+  .catch(error => console.error("❌ Could not connect to MongoDB:", error));
 
-// --- API Endpoints ---
+// --- Room Management Endpoints ---
 
-// Dashboard
-app.get('/api/dashboard', async (req, res) => {
-  if (!db) return res.status(503).send("Database not connected");
-  try {
-    const rooms = await db.collection('rooms').find().sort({ floor: 1, roomNumber: 1 }).toArray();
-    const floorsMap = {};
-    for (const room of rooms) {
-      const floorNum = room.floor;
-      if (!floorsMap[floorNum]) {
-        floorsMap[floorNum] = { floorNumber: floorNum, rooms: [] };
+const getRoomsWithOccupancy = async (filter = {}) => {
+  if (!db) throw new Error("Database not connected");
+
+  return await db.collection('rooms').aggregate([
+    { $match: filter },
+    {
+      $lookup: {
+        from: 'students',
+        localField: '_id',
+        foreignField: 'room',
+        as: 'occupants'
       }
-      const processedRoom = { ...room, id: room._id.toString(), occupiedBeds: room.occupants.length };
-      floorsMap[floorNum].rooms.push(processedRoom);
-    }
-    res.json(Object.values(floorsMap));
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching dashboard data', error });
-  }
-});
+    },
+    {
+      $addFields: {
+        occupiedBeds: { $size: '$occupants' }
+      }
+    },
+    { $sort: { floor: 1, roomNumber: 1 } }
+  ]).toArray();
+};
 
-// Rooms
 app.get('/api/rooms', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
-    const rooms = await db.collection('rooms').find().toArray();
+    const rooms = await getRoomsWithOccupancy();
     res.json(rooms);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching rooms', error });
+    res.status(500).json({ message: 'Error fetching rooms', error: error.message });
   }
 });
 
-app.post('/api/rooms', async (req, res) => {
+// --- Dashboard Vacancy Endpoint (NEW) ---
+app.get('/api/dashboard', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
-    const { roomNumber, floor, totalBeds } = req.body;
-    if (!roomNumber || !floor || !totalBeds) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    const newRoom = { 
-      roomNumber,
-      floor: parseInt(floor),
-      totalBeds: parseInt(totalBeds),
-      occupants: [] 
-    };
-    const result = await db.collection('rooms').insertOne(newRoom);
-    res.status(201).json(result.ops[0]);
+    const rooms = await getRoomsWithOccupancy();
+    const totalBeds = rooms.reduce((sum, room) => sum + room.totalBeds, 0);
+    const occupiedBeds = rooms.reduce((sum, room) => sum + room.occupiedBeds, 0);
+    const vacancy = totalBeds > 0 ? ((totalBeds - occupiedBeds) / totalBeds) * 100 : 0;
+
+    res.json({
+      totalBeds,
+      occupiedBeds,
+      vacancy: vacancy.toFixed(1) 
+    });
   } catch (error) {
-    console.error("Error adding room:", error);
-    res.status(500).json({ message: 'Error adding room', error });
+    res.status(500).json({ message: 'Error fetching dashboard data', error: error.message });
   }
 });
 
@@ -79,20 +78,30 @@ app.put('/api/rooms/:id', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
     const { id } = req.params;
-    const { roomNumber, floor, totalBeds } = req.body;
-    if (!roomNumber || !floor || !totalBeds) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid Room ID format' });
     }
-    const result = await db.collection('rooms').findOneAndUpdate(
+    const { roomNumber, floor, totalBeds } = req.body;
+
+    const updateResult = await db.collection('rooms').updateOne(
       { _id: new ObjectId(id) },
-      { $set: { roomNumber, floor: parseInt(floor), totalBeds: parseInt(totalBeds) } },
-      { returnDocument: 'after' }
+      { $set: { 
+          roomNumber, 
+          floor: parseInt(floor, 10), 
+          totalBeds: parseInt(totalBeds, 10) 
+        }
+      }
     );
-    if (!result.value) return res.status(404).json({ message: 'Room not found' });
-    res.json(result.value);
+
+    if (updateResult.matchedCount === 0) {
+        return res.status(404).json({ message: 'Room not found' });
+    }
+    
+    const updatedRoom = await getRoomsWithOccupancy({ _id: new ObjectId(id) });
+    res.status(200).json(updatedRoom[0]);
+
   } catch (error) {
-    console.error("Error updating room:", error);
-    res.status(500).json({ message: 'Error updating room', error });
+    res.status(500).json({ message: 'Error updating room', error: error.message });
   }
 });
 
@@ -100,92 +109,72 @@ app.delete('/api/rooms/:id', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid Room ID format' });
+    }
+    await db.collection('students').updateMany({ room: new ObjectId(id) }, { $unset: { room: "" } });
     const result = await db.collection('rooms').deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Room not found' });
     }
     res.status(204).send();
   } catch (error) {
-    console.error("Error deleting room:", error);
-    res.status(500).json({ message: 'Error deleting room', error });
+    res.status(500).json({ message: 'Error deleting room', error: error.message });
   }
 });
 
-// Students
+// --- Student Management Endpoints ---
+
 app.get('/api/students', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
     const students = await db.collection('students').find().toArray();
     res.json(students);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching students', error });
+    res.status(500).json({ message: 'Error fetching students', error: error.message });
   }
 });
 
-app.post('/api/students', async (req, res) => {
-  if (!db) return res.status(503).send("Database not connected");
-  try {
-    const { name, studentId, roomNumber } = req.body;
-    if (!name || !studentId) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    const newStudent = { name, studentId, roomNumber };
-    const result = await db.collection('students').insertOne(newStudent);
-    res.status(201).json(result.ops[0]);
-  } catch (error) {
-    console.error("Error adding student:", error);
-    res.status(500).json({ message: 'Error adding student', error });
-  }
-});
+// --- Request Management Endpoints ---
 
-app.put('/api/students/:id', async (req, res) => {
-  if (!db) return res.status(503).send("Database not connected");
-  try {
-    const { id } = req.params;
-    const { name, studentId, roomNumber } = req.body;
-    if (!name || !studentId) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    const result = await db.collection('students').findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $set: { name, studentId, roomNumber } },
-      { returnDocument: 'after' }
-    );
-    if (!result.value) return res.status(404).json({ message: 'Student not found' });
-    res.json(result.value);
-  } catch (error) {
-    console.error("Error updating student:", error);
-    res.status(500).json({ message: 'Error updating student', error });
-  }
-});
-
-app.delete('/api/students/:id', async (req, res) => {
-  if (!db) return res.status(503).send("Database not connected");
-  try {
-    const { id } = req.params;
-    const result = await db.collection('students').deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting student:", error);
-    res.status(500).json({ message: 'Error deleting student', error });
-  }
-});
-
-// Requests
 app.get('/api/requests', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
-    const requests = await db.collection('requests').find().toArray();
-    res.json(requests);
+    const requests = await db.collection('requests').find({}).toArray();
+    res.status(200).json(requests);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching requests', error });
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+});
+
+app.put('/api/requests/:id', async (req, res) => {
+  if (!db) return res.status(503).send("Database not connected");
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid Request ID format' });
+    }
+
+    const updateResult = await db.collection('requests').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { status } },
+      { returnDocument: 'after' }
+    );
+
+    if (!updateResult.value) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    res.status(200).json(updateResult.value);
+  } catch (error) {
+    res.status(400).json({ error: "Failed to update request" });
   }
 });
 
 
+// --- Start Server ---
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
 });

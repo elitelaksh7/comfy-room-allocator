@@ -1,63 +1,38 @@
 
-import { Bed, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export function RoomCard({ roomNumber, totalBeds, occupiedBeds, onClick }) {
-  const occupancyRate = (occupiedBeds / totalBeds) * 100;
-
-  const getStatusConfig = () => {
-    if (occupiedBeds === totalBeds) {
-      return {
-        color: "bg-status-full/10 text-status-full",
-        text: "Full"
-      };
-    }
-    if (occupiedBeds > 0) {
-      return {
-        color: "bg-status-half/10 text-status-half",
-        text: "Half-filled"
-      };
-    }
-    return {
-      color: "bg-status-available/10 text-status-available",
-      text: "Available"
-    };
-  };
-
-  const statusConfig = getStatusConfig();
+export function RoomCard({ room, onEditRoom, onOpenDetails }) {
+  const isFull = room.occupiedBeds >= room.totalBeds;
+  const availabilityClass = isFull ? 'bg-status-full' : 'bg-status-available';
 
   return (
-    <Card 
-      className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-border cursor-pointer"
-      onClick={onClick}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Bed className="h-4 w-4 text-primary" />
-            </div>
-            <h3 className="font-semibold text-foreground">{roomNumber}</h3>
+    <Card className="overflow-hidden relative">
+      <div className={cn("h-2 w-full", availabilityClass)} />
+      <div onClick={() => onOpenDetails(room)} className="cursor-pointer">
+        <CardContent className="p-4">
+          <div className="flex flex-col items-center text-center">
+            <h3 className="text-lg font-bold">{room.roomNumber}</h3>
+            <p className="text-sm text-muted-foreground">
+              {room.occupiedBeds} / {room.totalBeds} beds
+            </p>
           </div>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusConfig.color}`}>
-            {statusConfig.text}
-          </span>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex h-2 w-full overflow-hidden rounded-full">
-            <div style={{ width: `${occupancyRate}%` }} className="bg-status-full"></div>
-            <div style={{ width: `${100 - occupancyRate}%` }} className="bg-status-available"></div>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Users className="h-3 w-3" />
-              <span>{occupiedBeds}/{totalBeds} occupied</span>
-            </div>
-            <span className="font-medium text-foreground">{Math.round(occupancyRate)}%</span>
-          </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      </div>
+      <div className="flex justify-center pb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-white"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent the card's onClick from firing
+            onEditRoom(room);
+          }}
+        >
+          Edit
+        </Button>
+      </div>
     </Card>
   );
 }
