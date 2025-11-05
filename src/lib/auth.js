@@ -1,8 +1,11 @@
+export const signUp = async (email, password) => {
+  return Promise.resolve();
+};
 
-// This is a placeholder file. 
-// The original file contained Firebase authentication code which is no longer being used.
+export const signIn = async (email, password) => {
+  return Promise.resolve();
+};
 
-export const signUp = () => Promise.resolve();
-export const signIn = () => Promise.resolve();
-export const doSignOut = () => Promise.resolve();
-export const passwordReset = () => Promise.resolve();
+export const signOut = async () => {
+  return Promise.resolve();
+};

@@ -4,10 +4,15 @@ import { MongoClient, ObjectId } from 'mongodb';
 import cors from 'cors';
 
 const app = express();
-const port = 5000;
+const port = 3000;
 
-const mongoURI = "mongodb+srv://vedaanth09:vedaanth@cluster0.pdurjjo.mongodb.net/?appName=Cluster0";
-const dbName = "hostel";
+const mongoURI = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB_NAME || "comfy-room-allocator";
+
+if (!mongoURI) {
+  console.error("❌ MONGODB_URI environment variable is required!");
+  process.exit(1);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -32,7 +37,7 @@ const getRoomsWithOccupancy = async (filter = {}) => {
       $lookup: {
         from: 'students',
         localField: '_id',
-        foreignField: 'room',
+        foreignField: 'roomId',
         as: 'occupants'
       }
     },
@@ -52,6 +57,24 @@ app.get('/api/rooms', async (req, res) => {
     res.json(rooms);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching rooms', error: error.message });
+  }
+});
+
+app.post('/api/rooms', async (req, res) => {
+  if (!db) return res.status(503).send("Database not connected");
+  try {
+    const { roomNumber, floor, totalBeds } = req.body;
+    const newRoom = {
+      roomNumber,
+      floor: parseInt(floor, 10),
+      totalBeds: parseInt(totalBeds, 10)
+    };
+    
+    const result = await db.collection('rooms').insertOne(newRoom);
+    const insertedRoom = await getRoomsWithOccupancy({ _id: result.insertedId });
+    res.status(201).json(insertedRoom[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating room', error: error.message });
   }
 });
 
@@ -112,7 +135,7 @@ app.delete('/api/rooms/:id', async (req, res) => {
     if (!ObjectId.isValid(id)) {
         return res.status(400).json({ message: 'Invalid Room ID format' });
     }
-    await db.collection('students').updateMany({ room: new ObjectId(id) }, { $unset: { room: "" } });
+    await db.collection('students').updateMany({ roomId: new ObjectId(id) }, { $set: { roomId: null } });
     const result = await db.collection('rooms').deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Room not found' });
@@ -128,10 +151,138 @@ app.delete('/api/rooms/:id', async (req, res) => {
 app.get('/api/students', async (req, res) => {
   if (!db) return res.status(503).send("Database not connected");
   try {
-    const students = await db.collection('students').find().toArray();
+    const students = await db.collection('students').aggregate([
+      {
+        $lookup: {
+          from: 'rooms',
+          localField: 'roomId',
+          foreignField: '_id',
+          as: 'roomData'
+        }
+      },
+      {
+        $addFields: {
+          roomNumber: { $arrayElemAt: ['$roomData.roomNumber', 0] }
+        }
+      },
+      {
+        $project: {
+          roomData: 0
+        }
+      }
+    ]).toArray();
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching students', error: error.message });
+  }
+});
+
+app.post('/api/students', async (req, res) => {
+  if (!db) return res.status(503).send("Database not connected");
+  try {
+    const { studentId, name, email, roomId } = req.body;
+    const newStudent = {
+      studentId,
+      name,
+      email,
+      roomId: roomId ? new ObjectId(roomId) : null
+    };
+    
+    const result = await db.collection('students').insertOne(newStudent);
+    const insertedStudent = await db.collection('students').aggregate([
+      { $match: { _id: result.insertedId } },
+      {
+        $lookup: {
+          from: 'rooms',
+          localField: 'roomId',
+          foreignField: '_id',
+          as: 'roomData'
+        }
+      },
+      {
+        $addFields: {
+          roomNumber: { $arrayElemAt: ['$roomData.roomNumber', 0] }
+        }
+      },
+      {
+        $project: {
+          roomData: 0
+        }
+      }
+    ]).toArray();
+    res.status(201).json(insertedStudent[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating student', error: error.message });
+  }
+});
+
+app.put('/api/students/:id', async (req, res) => {
+  if (!db) return res.status(503).send("Database not connected");
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid Student ID format' });
+    }
+    const { studentId, name, email, roomId } = req.body;
+
+    const updateData = {
+      studentId,
+      name,
+      email,
+      roomId: roomId ? new ObjectId(roomId) : null
+    };
+
+    const updateResult = await db.collection('students').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const updatedStudent = await db.collection('students').aggregate([
+      { $match: { _id: new ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'rooms',
+          localField: 'roomId',
+          foreignField: '_id',
+          as: 'roomData'
+        }
+      },
+      {
+        $addFields: {
+          roomNumber: { $arrayElemAt: ['$roomData.roomNumber', 0] }
+        }
+      },
+      {
+        $project: {
+          roomData: 0
+        }
+      }
+    ]).toArray();
+    res.status(200).json(updatedStudent[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating student', error: error.message });
+  }
+});
+
+app.delete('/api/students/:id', async (req, res) => {
+  if (!db) return res.status(503).send("Database not connected");
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid Student ID format' });
+    }
+    
+    const result = await db.collection('students').deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting student', error: error.message });
   }
 });
 

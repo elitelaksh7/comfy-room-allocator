@@ -5,7 +5,7 @@ import path from "path";
 
 // The target URL for the backend server
 // We use localhost because both Vite and the Node server are running inside the same environment.
-const backendTarget = 'http://localhost:5000';
+const backendTarget = 'http://localhost:3000';
 
 export default defineConfig({
   plugins: [react()],
@@ -34,6 +34,6 @@ export default defineConfig({
       },
     },
     host: '0.0.0.0',
-    port: 8081,
+    port: 5000,
   },
 });
